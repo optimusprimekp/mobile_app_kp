@@ -116,7 +116,7 @@ function App() {
         </div>
 
         <h1 className="text-xl font-semibold text-center mb-4">
-          Robot Control Panel
+          SR2KV2 Robot Control Panel
         </h1>
 
         <input
