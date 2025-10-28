@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Robot Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.7.7/dist/axios.min.js"></script>
+    <script>
+      const apiClient = axios.create({
+        baseURL: "http://65.2.149.144/api",
+        headers: {
+          accept: "application/json",
+          Authorization:
+            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6ImJiNGUwMTZiLTYzODYtNDgwNS05NmNiLTcxMWJjNTM5YjFjOCIsInR5cCI6ImtleSJ9.8Jr9fgsTQlpIxOojN-nndVMcKJ5XnVIumZX_LcD8nLo",
+        },
+      });
+      const command = {
+        CLEAN_CYCLE: {
+          base64_command: "WgEAAA==",
+        },
+        LEFT_START: {
+          base64_command: "WwEAAA==",
+        },
+        RIGHT_START: {
+          base64_command: "XAIAAA==",
+        },
+        STOP_ROBOT: {
+          base64_command: "XQEAAA==",
+        },
+        HOME: {
+          base64_command: "XgEAAA==",
+        },
+      };
+      async function sendQueueItem(deviceId, type) {
+        try {
+          const getCommandCode = command[type].base64_command;
+          console.log(getCommandCode);
+          const queueItem = {
+            fPort: 8,
+            data: getCommandCode,
+            confirmed: true,
+          };
+          const response = await apiClient.post(`/devices/${deviceId}/queue`, {
+            queueItem: queueItem,
+          });
+          return response.data;
+        } catch (error) {
+          console.error(
+            "API Error:",
+            error.response ? error.response.data : error.message
+          );
+          throw error;
+        }
+      }
+
+      function addLog(msg) {
+        const log = document.getElementById("log");
+        const entry = document.createElement("div");
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        log.prepend(entry);
+      }
+
+      function sendCommand(cmd) {
+        const deviceId = document.getElementById("deviceId").value.trim();
+        if (!deviceId) {
+          alert("Please enter Device ID");
+          return;
+        }
+        sendQueueItem(deviceId, cmd);
+      }
+    </script>
+  </head>
+  <body
+    class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4"
+  >
+    <div class="bg-white shadow-lg rounded-2xl p-6 w-full max-w-sm">
+      <div class="flex items-center justify-center mb-4">
+        <img
+          src="https://kpgroup.co/wp-content/uploads/2025/07/kp-logo-150x150-1.webp"
+          class="h-16 w-16"
+          alt="KP Logo"
+        />
+      </div>
+      <h1 class="text-xl font-semibold text-center mb-4">
+        Robot Control Panel
+      </h1>
+      <input
+        id="deviceId"
+        type="text"
+        placeholder="Enter Device ID"
+        class="w-full mb-4 p-2 border rounded-md"
+      />
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          onclick="sendCommand('CLEAN_CYCLE')"
+          class="bg-green-600 text-white py-2 rounded-md"
+        >
+          Clean Cycle
+        </button>
+        <button
+          onclick="sendCommand('LEFT_START')"
+          class="bg-blue-600 text-white py-2 rounded-md"
+        >
+          Left Start
+        </button>
+        <button
+          onclick="sendCommand('RIGHT_START')"
+          class="bg-indigo-600 text-white py-2 rounded-md"
+        >
+          Right Start
+        </button>
+        <button
+          onclick="sendCommand('HOME')"
+          class="bg-amber-600 text-white py-2 rounded-md"
+        >
+          Home
+        </button>
+        <button
+          onclick="sendCommand('STOP')"
+          class="col-span-2 bg-red-600 text-white py-2 rounded-md"
+        >
+          Stop
+        </button>
+      </div>
+      <div
+        id="log"
+        class="mt-4 bg-gray-100 border rounded-md p-2 h-40 overflow-y-auto text-sm"
+      ></div>
+    </div>
+  </body>
+</html>
